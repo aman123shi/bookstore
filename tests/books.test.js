@@ -20,5 +20,23 @@ describe("/api/books", () => {
         .send({ firstName: "" });
       expect(res.status).toBe(401);
     });
+    it("should return book  when valid data is sent", async () => {
+      let res = await request(server)
+        .post("/api/books")
+        .send({
+          title: "book1",
+          description: "some dummy book",
+          author: 2,
+          price: 200,
+          coverImage: "aa.jpg",
+        });
+      expect(res.body).toEqual({
+        title: "book1",
+        description: "some dummy book",
+        author: 2,
+        price: 200,
+        coverImage: "aa.jpg",
+      });
+    });
   });
 });
