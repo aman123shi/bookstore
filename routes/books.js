@@ -81,4 +81,4 @@ router.delete("/:id", guard, async (req, res) => {
   res.status(200).send(book);
 });
 
-router.delete();
+module.exports = router;
