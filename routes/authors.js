@@ -20,12 +20,15 @@ let authors = [
   }),
 ];
 
-//api/authors
+//POST api/authors
+//to register new user/author and
 router.post("/", guard, async (req, res) => {
   let error = validateAuthor(req.body);
   if (error) return res.status(404).send(error.message);
+  let author = authors.find((author) => author.email == req.body.email);
+  if (author) return res.send("user already existed");
   let newAuthor = new Author(req.body);
-  newAuthor.id = books.length + 1;
+  newAuthor.id = authors.length + 1;
   authors.push(newAuthor);
 
   let token = jwt.sign(
@@ -36,6 +39,7 @@ router.post("/", guard, async (req, res) => {
   );
   res.send({
     success: true,
+    user: newAuthor,
     token: token,
   });
 });
