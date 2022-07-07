@@ -1,6 +1,8 @@
 const router = require("express").Router();
 const { Book, validateBook } = require("../models/book");
-const { Author, validateAuthor } = require("../models/author");
+const { Author } = require("../models/author");
+const guard = require("../middlewares/guard");
+//simulating DB
 let books = [
   new Book({
     id: 1,
@@ -19,7 +21,7 @@ let books = [
     price: 150,
   }),
 ];
-//get all books
+//get all books query params price and author
 router.get("/", async (req, res) => {
   //query by author and price
   let selectedBooks = [];
@@ -31,7 +33,7 @@ router.get("/", async (req, res) => {
     }
     if (req.query.author) {
       for (const book of books) {
-        if (book.author.firstName == req.query.author) selectedBooks.push(book);
+        if (book.author == req.query.author) selectedBooks.push(book);
       }
     }
     return res.send(selectedBooks);
@@ -47,18 +49,16 @@ router.get("/:id", async (req, res) => {
   res.send(book);
 });
 //POST api/books/
-router.put("/", async (req, res) => {
+router.post("/", guard, async (req, res) => {
   let error = validateBook(req.body);
   if (error) return res.status(404).send(error.message);
-
-  if (error) return res.send(error.message);
   let newBook = new Book(req.body);
-  books.slice(bookIndex, 1, newBook);
-
+  newBook.id = books.length + 1;
+  books.push(newBook);
   res.status(200).send(newBook);
 });
 //PUT api/books/:id
-router.put("/:id", async (req, res) => {
+router.put("/:id", guard, async (req, res) => {
   let id = parseInt(req.params.id);
   let bookIndex = books.findIndex((book) => book.id == id);
   if (bookIndex == -1) return res.status(404).send("book not found ");
@@ -72,7 +72,7 @@ router.put("/:id", async (req, res) => {
 });
 
 //DELETE api/books/:id
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", guard, async (req, res) => {
   let id = parseInt(req.params.id);
   let bookIndex = books.findIndex((book) => book.id == id);
   let book = books[bookIndex];

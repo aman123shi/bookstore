@@ -1,21 +1,33 @@
-const Joi = require("joi");
 const express = require("express");
 const router = express.Router();
-const { User } = require("../models/user");
+const jwt = require("jsonwebtoken");
+const config = require("config");
+const { Author, validateAuthor } = require("../models/author");
+let authors = []; //some authors
 
-router.post("/", async (req, res) => {
+//POST api/auth/login
+router.post("/login", async (req, res) => {
   const error = validate(req.body);
 
   if (error) return res.status(400).send(error.message);
-  let user = await User.findOne({
-    email: req.body.email,
-  });
-  if (!user) return res.status(400).send("Invalid email or password");
+  let author = null;
+  for (const a of authors) {
+    if (a.email == req.body.email) {
+      author = a;
+      break;
+    }
+  }
+  if (!author) return res.status(400).send("Invalid email or password");
 
-  let match = await bcrypt.compare(req.body.password, user.password);
+  let match = req.body.password == author.password;
 
   if (!match) return res.status(400).send("Invalid email or password");
-  let token = user.generateAuthToken();
+  let token = jwt.sign(
+    {
+      id: author.id,
+    },
+    config.get("jwtPrivateKey")
+  );
   res.send({
     success: true,
     token: token,
